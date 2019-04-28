@@ -19,12 +19,19 @@
         <!--/>-->
 
     <ImageView
+        android:id="@+id/image_view1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:contentDescription="@string/imageview_description" />
+
+    <ja.burhanrashid52.photoeditor.PhotoEditorView
         android:id="@+id/image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="@dimen/view_margin"
-        android:contentDescription="@string/imageview_description"
         />
+
 
     <TextView
         android:id="@+id/title_text_view"
@@ -88,5 +95,6 @@
         android:src="@drawable/ic_share"
         android:visibility="gone"
         app:backgroundTint="@android:color/white" />
+
 
 </RelativeLayout>

@@ -16,12 +16,14 @@
 
 package com.example.android.emojify;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
@@ -34,6 +36,10 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import ja.burhanrashid52.photoeditor.PhotoEditor;
+import ja.burhanrashid52.photoeditor.PhotoEditorView;
+import ja.burhanrashid52.photoeditor.SaveSettings;
 
 class BitmapUtils {
 
@@ -65,7 +71,7 @@ class BitmapUtils {
         int photoH = bmOptions.outHeight;
 
         // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
+        int scaleFactor = Math.min( photoW/ targetW, photoH / targetH);
 
         // Decode the image file into a Bitmap sized to fill the View
         bmOptions.inJustDecodeBounds = false;
@@ -121,7 +127,7 @@ class BitmapUtils {
      *
      * @param imagePath The path of the saved image
      */
-    private static void galleryAddPic(Context context, String imagePath) {
+    static void galleryAddPic(Context context, String imagePath) {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(imagePath);
         Uri contentUri = Uri.fromFile(f);
@@ -173,9 +179,43 @@ class BitmapUtils {
             Toast.makeText(context, savedMessage, Toast.LENGTH_SHORT).show();
         }
 
+
         return savedImagePath;
     }
 
+    @SuppressLint("MissingPermission")
+    static void saveImage(Context context, PhotoEditor mPhotoEditor , PhotoEditorView mPhotoEditorView) {
+
+        File file = new File( Environment.getExternalStorageDirectory()
+                              + File.separator + ""
+                              + System.currentTimeMillis() + ".png");
+        try {
+            file.createNewFile();
+
+            SaveSettings saveSettings = new SaveSettings.Builder()
+                    .setClearViewsEnabled(true)
+                    .setTransparencyEnabled(true)
+                    .build();
+
+            mPhotoEditor.saveAsFile(file.getAbsolutePath(), saveSettings, new PhotoEditor.OnSaveListener() {
+                @Override
+                public void onSuccess(@NonNull String imagePath) {
+
+                    mPhotoEditorView.getSource().setImageURI(Uri.fromFile(new File(imagePath)));
+                }
+
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+
+                }
+            });
+            BitmapUtils.galleryAddPic(context,file.getAbsolutePath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
     /**
      * Helper method for sharing an image.
      *
@@ -190,5 +230,40 @@ class BitmapUtils {
         Uri photoURI = FileProvider.getUriForFile(context, FILE_PROVIDER_AUTHORITY, imageFile);
         shareIntent.putExtra(Intent.EXTRA_STREAM, photoURI);
         context.startActivity(shareIntent);
+    }
+
+    @SuppressLint("MissingPermission")
+    static void ShereImage(Context context,PhotoEditor mPhotoEditor) {
+
+        File file = new File( Environment.getExternalStorageDirectory()
+                              + File.separator + ""
+                              + System.currentTimeMillis() + ".png");
+        try {
+            file.createNewFile();
+
+            SaveSettings saveSettings = new SaveSettings.Builder()
+                    .setClearViewsEnabled(true)
+                    .setTransparencyEnabled(true)
+                    .build();
+
+            mPhotoEditor.saveAsFile(file.getAbsolutePath(), saveSettings, new PhotoEditor.OnSaveListener() {
+                @Override
+                public void onSuccess(@NonNull String imagePath) {
+
+                    Intent share = new Intent(Intent.ACTION_SEND);
+                    share.setType("image/jpeg");
+                    share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(imagePath)));
+                    context.startActivity(Intent.createChooser(share, "Share Image"));
+                }
+
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
